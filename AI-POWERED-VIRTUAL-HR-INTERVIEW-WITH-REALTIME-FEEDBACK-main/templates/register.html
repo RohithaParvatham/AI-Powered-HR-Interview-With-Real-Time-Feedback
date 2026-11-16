@@ -3,34 +3,44 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Register</title>
+    <title>Create account</title>
     <style>
-        body { font-family: Arial, sans-serif; background-color: #f4f4f4; padding: 50px; }
-        .container { max-width: 400px; margin: auto; padding: 20px; background: #fff; border-radius: 8px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); }
-        h2 { text-align: center; color: #333; }
-        label { display: block; margin: 10px 0 5px; }
-        input[type="text"], input[type="password"] { width: 100%; padding: 10px; margin: 10px 0; border: 1px solid #ccc; border-radius: 4px; }
-        button { width: 100%; padding: 12px; background-color: #4CAF50; color: white; border: none; border-radius: 4px; cursor: pointer; }
-        button:hover { background-color: #45a049; }
-        .error { color: red; text-align: center; }
+        body { font-family: Arial, sans-serif; background: #f2f5f9; color: #182230; margin: 0; padding: 48px 20px; }
+        .container { max-width: 400px; margin: auto; padding: 28px; background: #fff; border-radius: 12px; box-shadow: 0 8px 28px #18223018; }
+        h1 { margin-top: 0; text-align: center; }
+        label { display: block; margin: 16px 0 6px; }
+        input { box-sizing: border-box; width: 100%; padding: 12px; border: 1px solid #c8d0dc; border-radius: 6px; }
+        button { width: 100%; margin-top: 20px; padding: 12px; background: #2357d8; color: white; border: 0; border-radius: 6px; cursor: pointer; }
+        .message { padding: 10px; border-radius: 6px; }
+        .error { color: #8d1620; background: #fff0f0; }
+        .success { color: #155b31; background: #eaf8ef; }
+        .link { text-align: center; margin-bottom: 0; }
     </style>
 </head>
 <body>
     <div class="container">
-        <h2>Register</h2>
-        <form action="/register" method="POST">
+        <h1>Create your account</h1>
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% for category, message in messages %}
+                <p class="message {{ category }}" role="status">{{ message }}</p>
+            {% endfor %}
+        {% endwith %}
+        <form action="{{ url_for('register') }}" method="POST">
+            <label for="full_name">Full name:</label>
+            <input type="text" id="full_name" name="full_name" maxlength="120" autocomplete="name" required>
+
             <label for="username">Username:</label>
-            <input type="text" id="username" name="username" required>
+            <input type="text" id="username" name="username" maxlength="80" autocomplete="username" required>
 
             <label for="password">Password:</label>
-            <input type="password" id="password" name="password" required>
+            <input type="password" id="password" name="password" minlength="8" autocomplete="new-password" required>
 
             <label for="confirm_password">Confirm Password:</label>
-            <input type="password" id="confirm_password" name="confirm_password" required>
+            <input type="password" id="confirm_password" name="confirm_password" minlength="8" autocomplete="new-password" required>
 
-            <button type="submit">Register</button>
+            <button type="submit">Create account</button>
         </form>
-        <p style="text-align:center">Already have an account? <a href="/">Login</a></p>
+        <p class="link">Already have an account? <a href="{{ url_for('home') }}">Log in</a></p>
     </div>
 </body>
 </html>

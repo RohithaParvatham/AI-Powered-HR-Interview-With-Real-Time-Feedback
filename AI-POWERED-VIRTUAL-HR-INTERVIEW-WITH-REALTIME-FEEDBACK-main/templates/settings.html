@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Settings</title>
+    <style>
+        body { margin: 0; padding: 24px 20px; background: #f2f5f9; color: #182230; font-family: Arial, sans-serif; }
+        main { max-width: 760px; margin: auto; }
+        header, section { padding: 22px; margin-bottom: 16px; background: #fff; border-radius: 12px; box-shadow: 0 8px 28px #18223018; }
+        header { display: flex; justify-content: space-between; align-items: center; gap: 16px; }
+        h1 { margin: 0; font-size: 23px; }
+        h2 { margin-top: 0; font-size: 19px; }
+        label { display: block; margin: 16px 0 6px; font-weight: 600; }
+        input, select { box-sizing: border-box; width: 100%; padding: 11px; border: 1px solid #c8d0dc; border-radius: 6px; font: inherit; }
+        input[type="checkbox"] { width: auto; margin-right: 8px; }
+        .check-label { display: flex; align-items: center; font-weight: 400; }
+        button, .button { display: inline-block; padding: 10px 14px; border: 0; border-radius: 6px; background: #2357d8; color: #fff; cursor: pointer; text-decoration: none; font: inherit; }
+        .secondary { background: #526174; }
+        .danger { border: 1px solid #efb4b8; }
+        .danger h2 { color: #9c2631; }
+        .danger button { background: #9c2631; }
+        .hint { color: #526174; font-size: 14px; line-height: 1.5; }
+        .message { padding: 10px; border-radius: 6px; }
+        .error { color: #8d1620; background: #fff0f0; }
+        .success { color: #155b31; background: #eaf8ef; }
+        body[data-theme="dark"] { background: #0f172a; color: #e5e7eb; }
+        body[data-theme="dark"] header, body[data-theme="dark"] section { background: #1e293b; color: #e5e7eb; }
+        body[data-theme="dark"] .hint { color: #b6c3d5; }
+        body[data-theme="dark"] input, body[data-theme="dark"] select { background: #0f172a; border-color: #475569; color: #e5e7eb; }
+        body[data-theme="dark"] .danger { border-color: #9c2631; }
+        @media (max-width: 560px) { header { align-items: flex-start; flex-direction: column; } }
+    </style>
+</head>
+<body data-theme="{{ user['theme'] }}" data-username="{{ user['username'] }}">
+    <main>
+        <header>
+            <h1>Settings</h1>
+            <a class="button secondary" href="{{ url_for('dashboard') }}">Back to dashboard</a>
+        </header>
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% for category, message in messages %}
+                <p class="message {{ category }}" role="status">{{ message }}</p>
+            {% endfor %}
+        {% endwith %}
+
+        <section>
+            <h2>Appearance and reminders</h2>
+            <form action="{{ url_for('settings') }}" method="POST">
+                <input type="hidden" name="section" value="preferences">
+                <label for="theme">Theme</label>
+                <select id="theme" name="theme">
+                    <option value="light" {% if user['theme'] == 'light' %}selected{% endif %}>Light</option>
+                    <option value="dark" {% if user['theme'] == 'dark' %}selected{% endif %}>Dark</option>
+                </select>
+
+                <label class="check-label">
+                    <input type="checkbox" name="dashboard_reminders" {% if user['dashboard_reminders'] %}checked{% endif %}>
+                    Show an in-app reminder if I have not completed an interview today
+                </label>
+                <p class="hint">Reminders appear on your dashboard only. They do not send email or push notifications.</p>
+                <label for="weekly_goal">Weekly interview goal</label>
+                <input id="weekly_goal" name="weekly_goal" type="number" min="1" max="20" value="{{ user['weekly_goal'] }}" required>
+                <p class="hint">Choose a goal from 1 to 20 completed interviews per week.</p>
+                <button type="submit">Save settings</button>
+            </form>
+        </section>
+
+        <section>
+            <h2>Change password</h2>
+            <form action="{{ url_for('settings') }}" method="POST">
+                <input type="hidden" name="section" value="password">
+                <label for="current_password">Current password</label>
+                <input id="current_password" name="current_password" type="password" autocomplete="current-password" required>
+                <label for="new_password">New password</label>
+                <input id="new_password" name="new_password" type="password" minlength="8" autocomplete="new-password" required>
+                <label for="confirm_password">Confirm new password</label>
+                <input id="confirm_password" name="confirm_password" type="password" minlength="8" autocomplete="new-password" required>
+                <button type="submit">Change password</button>
+            </form>
+        </section>
+
+        <section>
+            <h2>Local recording privacy</h2>
+            <p>Opt-in video and audio recordings are kept in this browser only. They are not uploaded or removed when you delete your server account.</p>
+            <button id="deleteLocalRecordings" class="secondary" type="button">Delete all my local recordings</button>
+            <p id="localRecordingStatus" role="status" aria-live="polite"></p>
+        </section>
+
+        <section class="danger">
+            <h2>Delete account</h2>
+            <p>This permanently deletes your account, interview history, answers, and feedback. This cannot be undone.</p>
+            <form action="{{ url_for('settings') }}" method="POST">
+                <input type="hidden" name="section" value="delete_account">
+                <label for="delete_current_password">Current password</label>
+                <input id="delete_current_password" name="current_password" type="password" autocomplete="current-password" required>
+                <label for="confirm_username">Type your username to confirm: {{ user['username'] }}</label>
+                <input id="confirm_username" name="confirm_username" type="text" autocomplete="off" required>
+                <label class="check-label">
+                    <input type="checkbox" name="confirm_delete" required>
+                    I understand that this permanently deletes my account and data
+                </label>
+                <button type="submit">Delete my account</button>
+            </form>
+        </section>
+    </main>
+    <script src="{{ url_for('static', filename='recordings.js') }}"></script>
+    <script>
+        const deleteLocalRecordingsButton = document.getElementById("deleteLocalRecordings");
+        const localRecordingStatus = document.getElementById("localRecordingStatus");
+        deleteLocalRecordingsButton.addEventListener("click", async () => {
+            if (!window.confirm("Delete all local recordings for this account from this browser? This cannot be undone.")) {
+                return;
+            }
+            deleteLocalRecordingsButton.disabled = true;
+            try {
+                await window.localInterviewRecordings.deleteAll(document.body.dataset.username);
+                localRecordingStatus.textContent = "All local recordings for this account were deleted.";
+            } catch (error) {
+                localRecordingStatus.textContent = `Could not delete local recordings: ${error.message}`;
+            } finally {
+                deleteLocalRecordingsButton.disabled = false;
+            }
+        });
+    </script>
+</body>
+</html>

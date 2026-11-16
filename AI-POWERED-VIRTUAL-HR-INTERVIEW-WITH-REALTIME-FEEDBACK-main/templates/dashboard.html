@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interview dashboard</title>
+    <style>
+        body { margin: 0; padding: 24px 20px; background: #f2f5f9; color: #182230; font-family: Arial, sans-serif; }
+        main { max-width: 1040px; margin: auto; }
+        header, section, article { padding: 22px; background: #fff; border-radius: 12px; box-shadow: 0 8px 28px #18223018; }
+        header { display: flex; justify-content: space-between; align-items: center; gap: 16px; margin-bottom: 18px; }
+        h1, h2, h3, p { margin-top: 0; }
+        h1 { margin-bottom: 6px; font-size: 24px; }
+        h2 { font-size: 19px; }
+        p { line-height: 1.5; }
+        a { color: #2357d8; }
+        button, .button { display: inline-block; padding: 10px 14px; border: 0; border-radius: 6px; background: #2357d8; color: #fff; cursor: pointer; text-decoration: none; font: inherit; }
+        button:focus-visible, a:focus-visible { outline: 3px solid #78a1ff; outline-offset: 2px; }
+        .secondary { background: #526174; }
+        .welcome { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 14px; }
+        .muted { color: #526174; }
+        .reminder { margin-bottom: 18px; border-left: 5px solid #e6a700; background: #fff9e6; }
+        .badges { display: flex; flex-wrap: wrap; gap: 8px; }
+        .badge { padding: 8px 10px; border-radius: 20px; background: #f3f6fc; }
+        .history { margin-top: 18px; }
+        .history-header { display: flex; align-items: center; justify-content: space-between; gap: 14px; }
+        .history-list { display: grid; gap: 12px; margin-top: 16px; }
+        .history-card { padding: 16px; border: 1px solid #e1e7ef; box-shadow: none; }
+        .history-heading { display: flex; align-items: center; justify-content: space-between; gap: 14px; }
+        .history-actions { display: flex; align-items: center; gap: 8px; }
+        .delete-history-form { margin: 0; }
+        .delete-history-button { display: grid; width: 40px; height: 40px; padding: 9px; place-items: center; background: #9c2631; }
+        .delete-history-button svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-linecap: round; stroke-linejoin: round; stroke-width: 1.8; }
+        .tags { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
+        .tag { padding: 4px 8px; border-radius: 12px; background: #edf2fb; color: #34445a; font-size: 13px; }
+        .empty { color: #526174; }
+        .progress-list { display: grid; gap: 12px; }
+        .progress-row { display: grid; grid-template-columns: minmax(120px, 1fr) 2fr auto; align-items: center; gap: 12px; }
+        progress { width: 100%; accent-color: #2357d8; }
+        .header-actions { display: flex; align-items: center; gap: 12px; }
+        .streak-menu { position: relative; }
+        .header-streak { display: grid; gap: 2px; padding: 7px 12px; border: 0; border-radius: 12px; background: #fff3df; color: #854d0e; cursor: pointer; font: inherit; text-align: left; white-space: nowrap; }
+        .header-streak-main { display: flex; align-items: center; gap: 6px; }
+        .header-streak-symbol { font-size: 19px; }
+        .header-streak-longest { font-size: 12px; }
+        .streak-popover { position: absolute; z-index: 4; top: calc(100% + 10px); right: 0; width: min(340px, calc(100vw - 48px)); max-height: min(65vh, 480px); overflow-y: auto; padding: 16px; border: 1px solid #e1e7ef; border-radius: 10px; background: #fff; box-shadow: 0 8px 28px #18223025; }
+        .streak-popover h2 { margin-bottom: 10px; }
+        .streak-popover h3 { margin: 16px 0 8px; }
+        .badge { display: grid; gap: 2px; }
+        .badge-status, .badge-locked { color: #526174; font-size: 12px; }
+        .badge-locked { opacity: .7; }
+        .streak-activity { display: grid; gap: 8px; margin: 0; padding: 0; list-style: none; }
+        .streak-activity > li { padding: 10px; border: 1px solid #e1e7ef; border-radius: 8px; }
+        .activity-date { display: flex; justify-content: space-between; gap: 8px; }
+        .activity-times { margin: 6px 0 0; padding-left: 18px; }
+        .profile-menu { position: relative; }
+        .profile-trigger { display: grid; width: 46px; height: 46px; padding: 0; place-items: center; border-radius: 50%; background: #2357d8; font-size: 20px; font-weight: 700; }
+        .profile-popover { position: absolute; z-index: 2; top: 54px; right: 0; width: 250px; padding: 16px; border: 1px solid #e1e7ef; border-radius: 10px; background: #fff; box-shadow: 0 8px 28px #18223025; }
+        .profile-identity { display: flex; align-items: center; gap: 10px; padding-bottom: 12px; border-bottom: 1px solid #e1e7ef; }
+        .avatar { display: grid; width: 48px; height: 48px; flex: 0 0 48px; place-items: center; border-radius: 50%; background: #dce7ff; color: #2357d8; font-weight: 700; object-fit: cover; }
+        .profile-links { display: grid; gap: 4px; padding: 10px 0; }
+        .profile-links a, .profile-popover form button { display: block; padding: 9px; border-radius: 6px; text-align: left; text-decoration: none; }
+        .profile-links a:hover { background: #f2f5f9; }
+        .profile-popover form { margin: 0; padding-top: 8px; border-top: 1px solid #e1e7ef; }
+        .profile-popover form button { width: 100%; background: #9c2631; }
+        body[data-theme="dark"] { background: #0f172a; color: #e5e7eb; }
+        body[data-theme="dark"] header, body[data-theme="dark"] section, body[data-theme="dark"] article, body[data-theme="dark"] .profile-popover, body[data-theme="dark"] .streak-popover { background: #1e293b; color: #e5e7eb; }
+        body[data-theme="dark"] .muted, body[data-theme="dark"] .empty { color: #b6c3d5; }
+        body[data-theme="dark"] .reminder { background: #3a321d; }
+        body[data-theme="dark"] .badge, body[data-theme="dark"] .tag { background: #334155; color: #e5e7eb; }
+        body[data-theme="dark"] .header-streak { background: #3a321d; color: #fde68a; }
+        body[data-theme="dark"] .badge-status, body[data-theme="dark"] .badge-locked { color: #b6c3d5; }
+        body[data-theme="dark"] .streak-activity > li { border-color: #475569; }
+        body[data-theme="dark"] .history-card, body[data-theme="dark"] .profile-identity, body[data-theme="dark"] .profile-popover form { border-color: #475569; }
+        body[data-theme="dark"] .profile-links a:hover { background: #334155; }
+        body[data-theme="dark"] progress { accent-color: #93c5fd; }
+        body[data-theme="dark"] a { color: #93c5fd; }
+        body[data-theme="dark"] .button, body[data-theme="dark"] .profile-trigger { color: #fff; }
+        @media (max-width: 680px) {
+            header { align-items: flex-start; flex-wrap: wrap; }
+            .header-actions { margin-left: auto; }
+        }
+    </style>
+</head>
+<body data-theme="{{ user['theme'] }}">
+    <main>
+        <header>
+            <div>
+                <h1>Interview practice dashboard</h1>
+                <p class="muted">Welcome, {{ display_name }}</p>
+            </div>
+            <div class="header-actions">
+                <div class="streak-menu" id="streakMenuContainer">
+                    <button id="streakMenuButton" class="header-streak" type="button"
+                            aria-label="Show streak details. Current streak: {{ current_streak }} {% if current_streak == 1 %}day{% else %}days{% endif %}. Longest streak: {{ best_streak }} {% if best_streak == 1 %}day{% else %}days{% endif %}."
+                            aria-expanded="false" aria-controls="streakPopover">
+                        <span class="header-streak-main">
+                            <span class="header-streak-symbol" aria-hidden="true">🔥</span>
+                            <strong>{{ current_streak }} {% if current_streak == 1 %}day{% else %}days{% endif %}</strong>
+                        </span>
+                        <span class="header-streak-longest">Longest streak: {{ best_streak }} {% if best_streak == 1 %}day{% else %}days{% endif %}</span>
+                    </button>
+                    <div id="streakPopover" class="streak-popover" role="region" aria-labelledby="streakPopoverTitle" hidden>
+                        <h2 id="streakPopoverTitle">Practice streak details</h2>
+                        <p>Current streak: {{ current_streak }} {% if current_streak == 1 %}day{% else %}days{% endif %}<br>
+                           Longest streak: {{ best_streak }} {% if best_streak == 1 %}day{% else %}days{% endif %}</p>
+                        <h3>Badges</h3>
+                        <div class="badges">
+                            {% for days, symbol, label in badges %}
+                                <span class="badge{% if best_streak < days %} badge-locked{% endif %}">
+                                    <span>{{ symbol }} {{ label }}</span>
+                                    <span class="badge-status">{% if best_streak >= days %}Earned{% else %}Reach {{ days }} {% if days == 1 %}day{% else %}days{% endif %}{% endif %}</span>
+                                </span>
+                            {% endfor %}
+                        </div>
+                        <h3>Participation sessions</h3>
+                        {% if streak_activity %}
+                            <ul class="streak-activity">
+                                {% for activity in streak_activity %}
+                                    <li>
+                                        <div class="activity-date">
+                                            <strong>{{ activity['date'] }}</strong>
+                                            <span>{{ activity['session_times']|length }} {% if activity['session_times']|length == 1 %}session{% else %}sessions{% endif %}</span>
+                                        </div>
+                                        <ul class="activity-times">
+                                            {% for time in activity['session_times'] %}
+                                                <li>Completed at {{ time }}</li>
+                                            {% endfor %}
+                                        </ul>
+                                    </li>
+                                {% endfor %}
+                            </ul>
+                        {% else %}
+                            <p class="muted">No completed interviews yet. Complete a session to start your streak.</p>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="profile-menu" id="profileMenuContainer">
+                    <button id="profileMenuButton" class="profile-trigger" type="button" aria-label="Open profile menu" aria-expanded="false" aria-controls="profileMenu">
+                        {{ display_name[:1]|upper }}
+                    </button>
+                    <div id="profileMenu" class="profile-popover" hidden>
+                        <div class="profile-identity">
+                            {% if user['has_profile_picture'] %}
+                                <img class="avatar" src="{{ url_for('profile_photo') }}" alt="">
+                            {% else %}
+                                <div class="avatar" aria-hidden="true">{{ display_name[:1]|upper }}</div>
+                            {% endif %}
+                            <div>
+                                <strong>{{ display_name }}</strong>
+                                <div class="muted">{{ user['username'] }}</div>
+                            </div>
+                        </div>
+                        <nav class="profile-links" aria-label="Profile actions">
+                            <a href="{{ url_for('profile') }}">Edit profile</a>
+                            <a href="{{ url_for('settings') }}">Settings</a>
+                        </nav>
+                        <form action="{{ url_for('logout') }}" method="POST">
+                            <button type="submit">Log out</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% for category, message in messages %}
+                <p class="message {{ category }}" role="status">{{ message }}</p>
+            {% endfor %}
+        {% endwith %}
+
+        <section class="welcome">
+            <div>
+                <h2>Mock interview</h2>
+                <p class="muted">Practice with questions tailored to your resume.</p>
+            </div>
+            <a class="button" href="{{ url_for('resume_upload') }}">Upload resume and start</a>
+        </section>
+
+        {% if user['dashboard_reminders'] and not completed_today %}
+            <section class="reminder" role="status">
+                <strong>Keep your momentum!</strong>
+                <span>Complete a mock interview today to build your daily streak.</span>
+            </section>
+        {% endif %}
+
+        <section>
+            <h2>Progress and weekly practice plan</h2>
+            <p>{{ weekly_completed }} of {{ weekly_goal }} interviews completed this week</p>
+            <progress max="{{ weekly_goal }}" value="{{ [weekly_completed, weekly_goal]|min }}" aria-label="Weekly interview goal progress"></progress>
+            <h3>Next practice</h3>
+            <p>{{ next_practice }}</p>
+            {% if focus_skills %}
+                <h3>Skills to focus on</h3>
+                <ul>
+                    {% for item in focus_skills %}
+                        <li>{{ item['skill'] }} · practice checklist average {{ item['score'] }}% across {{ item['answers'] }} answers</li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+            {% if practice_trend %}
+                <h3>Recent answer-quality trend</h3>
+                <div class="progress-list">
+                    {% for item in practice_trend %}
+                        <div class="progress-row">
+                            <span>{{ item['label'] }}</span>
+                            <progress max="100" value="{{ item['score'] }}" aria-label="{{ item['score'] }} percent practice checklist score"></progress>
+                            <span>{{ item['score'] }}%</span>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <p class="muted">Complete an interview with answers to start your progress trend.</p>
+            {% endif %}
+        </section>
+
+        <section class="history">
+            <div class="history-header">
+                <h2>Interview history</h2>
+                <button id="historyToggle" class="secondary" type="button" aria-expanded="false" aria-controls="historyContent">
+                    Show history
+                </button>
+            </div>
+            <div id="historyContent" hidden>
+                {% if history %}
+                    <div class="history-list">
+                        {% for item in history %}
+                            <article class="history-card">
+                                <div class="history-heading">
+                                    <div>
+                                        <h3>Resume interview</h3>
+                                        <p class="muted">{{ item['started_at'] }}</p>
+                                    </div>
+                                    <div class="history-actions">
+                                        <a class="button" href="{{ item['url'] }}">
+                                            {% if item['complete'] %}View feedback{% else %}Continue interview{% endif %}
+                                        </a>
+                                        <form class="delete-history-form" method="POST"
+                                              action="{{ url_for('delete_interview_history', interview_id=item['id']) }}"
+                                              data-interview-id="{{ item['id'] }}"
+                                              data-owner="{{ user['username'] }}">
+                                            <button class="delete-history-button" type="submit"
+                                                    aria-label="Delete interview history" title="Delete interview history">
+                                                <svg viewBox="0 0 24 24" aria-hidden="true">
+                                                    <path d="M4 7h16M10 11v6m4-6v6M5 7l1 14h12l1-14M9 7V4h6v3"></path>
+                                                </svg>
+                                            </button>
+                                        </form>
+                                    </div>
+                                </div>
+                                <div class="tags">
+                                    {% for skill in item['skills'] %}
+                                        <span class="tag">{{ skill }}</span>
+                                    {% endfor %}
+                                </div>
+                                <p>{{ item['answered_count'] }} answered · {{ item['skipped_count'] }} skipped · {{ item['question_count'] }} questions</p>
+                            </article>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <p class="empty">Your resume interview history and feedback will appear here.</p>
+                {% endif %}
+            </div>
+        </section>
+    </main>
+    <script src="{{ url_for('static', filename='recordings.js') }}"></script>
+    <script>
+        const profileMenuButton = document.getElementById("profileMenuButton");
+        const profileMenu = document.getElementById("profileMenu");
+        const profileMenuContainer = document.getElementById("profileMenuContainer");
+        const streakMenuButton = document.getElementById("streakMenuButton");
+        const streakPopover = document.getElementById("streakPopover");
+        const streakMenuContainer = document.getElementById("streakMenuContainer");
+        const historyToggle = document.getElementById("historyToggle");
+        const historyContent = document.getElementById("historyContent");
+
+        profileMenuButton.addEventListener("click", () => {
+            const expanded = profileMenuButton.getAttribute("aria-expanded") === "true";
+            profileMenu.hidden = expanded;
+            profileMenuButton.setAttribute("aria-expanded", String(!expanded));
+            streakPopover.hidden = true;
+            streakMenuButton.setAttribute("aria-expanded", "false");
+        });
+        streakMenuButton.addEventListener("click", () => {
+            const expanded = streakMenuButton.getAttribute("aria-expanded") === "true";
+            streakPopover.hidden = expanded;
+            streakMenuButton.setAttribute("aria-expanded", String(!expanded));
+            profileMenu.hidden = true;
+            profileMenuButton.setAttribute("aria-expanded", "false");
+        });
+        document.addEventListener("click", event => {
+            if (!profileMenuContainer.contains(event.target)) {
+                profileMenu.hidden = true;
+                profileMenuButton.setAttribute("aria-expanded", "false");
+            }
+            if (!streakMenuContainer.contains(event.target)) {
+                streakPopover.hidden = true;
+                streakMenuButton.setAttribute("aria-expanded", "false");
+            }
+        });
+        document.addEventListener("keydown", event => {
+            if (event.key === "Escape") {
+                if (!streakPopover.hidden) {
+                    streakPopover.hidden = true;
+                    streakMenuButton.setAttribute("aria-expanded", "false");
+                    streakMenuButton.focus();
+                } else if (!profileMenu.hidden) {
+                    profileMenu.hidden = true;
+                    profileMenuButton.setAttribute("aria-expanded", "false");
+                    profileMenuButton.focus();
+                }
+            }
+        });
+        historyToggle.addEventListener("click", () => {
+            const expanded = historyToggle.getAttribute("aria-expanded") === "true";
+            historyContent.hidden = expanded;
+            historyToggle.setAttribute("aria-expanded", String(!expanded));
+            historyToggle.textContent = expanded ? "Show history" : "Hide history";
+        });
+        document.querySelectorAll(".delete-history-form").forEach(form => {
+            form.addEventListener("submit", async event => {
+                event.preventDefault();
+                if (!window.confirm("Delete this interview history and its local recordings from this browser? This cannot be undone.")) {
+                    return;
+                }
+                const button = form.querySelector("button");
+                button.disabled = true;
+                try {
+                    if (window.localInterviewRecordings && "indexedDB" in window) {
+                        await window.localInterviewRecordings.deleteInterview(
+                            form.dataset.owner,
+                            form.dataset.interviewId
+                        );
+                    }
+                    form.submit();
+                } catch (error) {
+                    button.disabled = false;
+                    window.alert(`Could not delete local recordings, so the interview history was not deleted: ${error.message}`);
+                }
+            });
+        });
+    </script>
+</body>
+</html>

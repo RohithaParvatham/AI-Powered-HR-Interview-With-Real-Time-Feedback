@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interview feedback</title>
+    <style>
+        body { margin: 0; padding: 24px 20px; background: #f2f5f9; color: #182230; font-family: Arial, sans-serif; }
+        main { max-width: 900px; margin: auto; }
+        header, article { padding: 22px; margin-bottom: 16px; background: #fff; border-radius: 12px; box-shadow: 0 8px 28px #18223018; }
+        header { display: flex; justify-content: space-between; align-items: center; gap: 16px; }
+        h1 { margin: 0; font-size: 24px; }
+        h2 { margin-top: 0; font-size: 19px; }
+        h3 { margin-bottom: 6px; font-size: 15px; }
+        p { line-height: 1.55; white-space: pre-wrap; overflow-wrap: anywhere; }
+        button { padding: 10px 14px; border: 0; border-radius: 6px; background: #2357d8; color: #fff; cursor: pointer; }
+        .counts { color: #526174; }
+        .status { font-weight: 700; }
+        .skipped { color: #9c2631; }
+        .answered { color: #155b31; }
+        .sample { padding: 14px; background: #f3f6fc; border-left: 4px solid #2357d8; border-radius: 4px; }
+        .hint { color: #526174; font-size: 14px; }
+        .recordings { padding: 18px; border-radius: 8px; background: #eef3ff; }
+        .recordings details { margin-top: 12px; }
+        .recordings video, .recordings audio { display: block; max-width: 100%; margin-top: 10px; }
+        .danger { padding: 10px 14px; border: 0; border-radius: 6px; background: #9c2631; color: #fff; cursor: pointer; }
+        @media (max-width: 600px) { header { align-items: flex-start; flex-direction: column; } }
+        body[data-theme="dark"] { background: #0f172a; color: #e5e7eb; }
+        body[data-theme="dark"] header, body[data-theme="dark"] article { background: #1e293b; color: #e5e7eb; }
+        body[data-theme="dark"] .hint, body[data-theme="dark"] .counts { color: #b6c3d5; }
+        body[data-theme="dark"] .sample { background: #0f172a; }
+        body[data-theme="dark"] .recordings { background: #263650; }
+        body[data-theme="dark"] a { color: #93c5fd; }
+    </style>
+</head>
+<body data-theme="{{ theme }}">
+    <main>
+        <header>
+            <div>
+                <h1>Your interview review</h1>
+                <p class="counts">{{ answered_count }} answered · {{ skipped_count }} skipped · {{ questions|length }} total</p>
+                <p class="counts">{{ mode }} · {{ difficulty }} difficulty · {{ duration_minutes }} minute session</p>
+            </div>
+            <nav>
+                <a href="{{ url_for('dashboard') }}">Dashboard</a>
+                <a href="{{ url_for('resume_upload') }}">Practice with another resume</a>
+            </nav>
+        </header>
+        {% if target_skills %}
+            <article>
+                <h2>Job-description match</h2>
+                <p><strong>Target skills:</strong> {{ target_skills|join(', ') }}</p>
+                {% if gap_skills %}
+                    <p><strong>Skills to practice:</strong> {{ gap_skills|join(', ') }}</p>
+                {% else %}
+                    <p>Your resume matched the supported skills found in this job description.</p>
+                {% endif %}
+            </article>
+        {% endif %}
+        <p class="hint">Feedback uses a simple local checklist for context, actions, relevant skills, and outcomes; it is not an AI hiring assessment. The answer frameworks are prompts, not factual claims about your experience—fill in only details that are true for you.</p>
+        <section id="recordings" class="recordings"
+                 data-owner="{{ username }}" data-interview-id="{{ interview_id }}">
+            <h2>Private local recordings</h2>
+            <p id="recordingStatus" role="status">Loading clips stored in this browser...</p>
+            <div id="recordingList"></div>
+            <button id="deleteRecordings" class="danger" type="button">Delete this interview's local recordings</button>
+            <p class="hint">Audio answer recordings stay in this browser only. Deleting browser data also removes them.</p>
+        </section>
+        {% for item in questions %}
+            <article>
+                <h2>Question {{ item['position'] }} · {{ item['category'] }}{% if item['category'] == 'Technical' %} · {{ item['skill'] }}{% endif %}{% if item['is_follow_up'] %} · Follow-up{% endif %}</h2>
+                <p><strong>{{ item['question'] }}</strong></p>
+                {% if item['status'] == 'answered' %}
+                    <p class="status answered">Answered</p>
+                    <h3>What you said</h3>
+                    <p>{{ item['answer'] }}</p>
+                    <p><strong>STAR practice checklist score:</strong> {{ item['score'] }}%</p>
+                    <p>{{ item['star_feedback'] }}</p>
+                    <h3>Feedback</h3>
+                    <p>{{ item['feedback'] }}</p>
+                    <h3>A stronger answer framework</h3>
+                {% else %}
+                    <p class="status skipped">Skipped — here is a framework you can use to practice it.</p>
+                    <h3>Suggested answer framework</h3>
+                {% endif %}
+                <p class="sample">{{ item['sample_answer'] }}</p>
+            </article>
+        {% endfor %}
+    </main>
+    <script src="{{ url_for('static', filename='recordings.js') }}"></script>
+    <script src="{{ url_for('static', filename='feedback.js') }}"></script>
+</body>
+</html>
